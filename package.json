@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "type": "module",
+  "name": "invoke-create-matrix",
+  "description": "Takes tiny input and returns a Webpack config in the way I personally like.",
+  "keywords": [
+    "bundler",
+    "compiler",
+    "config",
+    "options",
+    "preset",
+    "settings",
+    "template",
+    "webpack",
+    "webpack-config",
+    "webpack-preset"
+  ],
+  "author": "Jaid <jaid.jsx@gmail.com> (https://github.com/Jaid)",
+  "homepage": "https://github.com/Jaid/webpack-config-factory",
+  "funding": "https://github.com/sponsors/jaid",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaid/webpack-config-factory"
+  },
+  "dependencies": {
+    "fs-extra": "^11.1.1",
+    "got": "^13.0.0",
+    "lodash-es": "^4.17.21",
+    "read-file-yaml": "^2.0.0",
+    "yaml": "^2.3.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "eslint-config-jaid": "^8.15.3",
+    "globby": "^13.2.2",
+    "openapi-typescript": "^6.7.0",
+    "tsconfig-jaid-node": "^6.1.1",
+    "type-fest": "^4.5.0"
+  },
+  "scripts": {
+    "start": "node --import tsx src/index.ts",
+    "buildOpenapiTypes": "curl http://localhost:9090/openapi.json --output temp/openapi.json && openapi-typescript --export-type temp/openapi.json --output lib/openapi.ts",
+    "test": "node --import tsx --test-only test/index.ts"
+  },
+  "bin": "./src/cli.ts"
+}
