@@ -1,4 +1,5 @@
 import type {InvokeTask} from './InvokeTask.js'
+import type {InvokeTaskBatch} from './InvokeTaskBatch.js'
 import type {paths as ApiType} from '~/lib/openapi.js'
 
 import got from 'got'
@@ -69,18 +70,16 @@ export class InvokeServer {
       throw error
     }
   }
-  async queueAll(tasks: InvokeTask[]) {
-    const jobs = tasks.map(task => async () => {
+  async queueAll(batch: InvokeTask[] | Iterable<InvokeTask>) {
+    const results: Parameters<InvokeServer["queue"]>[0][] = []
+    for (const task of batch) {
       const graph = task.build()
-      await this.queue(graph)
-    })
-    return Promise.all(jobs.map(job => job()))
-  }
-  async queueAllOptimized(tasks: InvokeTask[]) {
-    const sortedTasks = lodash.sortBy(tasks, [`options.model`, task => JSON.stringify(task.options.loras)])
-    for (const task of sortedTasks) {
-      const graph = task.build()
-      await this.queue(graph)
+      const result = await this.queue(graph)
+      results.push(result)
     }
+    return results
+  }
+  async queueAllOptimized(batch: InvokeTaskBatch) {
+    return this.queueAll(batch.getTasksOptimized())
   }
 }
