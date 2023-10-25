@@ -38,8 +38,8 @@
     "type-fest": "^4.5.0"
   },
   "scripts": {
-    "start": "node --import tsx src/index.ts",
-    "startFromYaml": "node --import tsx src/index.ts --from-yaml private/input.yml",
+    "start": "node --import tsx src/cli.ts",
+    "startFromYaml": "node --import tsx src/cli.ts --from-yaml private/input.yml",
     "buildOpenapiTypes": "curl http://localhost:9090/openapi.json --output temp/openapi.json && openapi-typescript --export-type temp/openapi.json --output lib/openapi.ts",
     "test": "node --import tsx --test-only test/index.ts"
   },
