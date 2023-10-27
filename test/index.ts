@@ -4,8 +4,10 @@ import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
 
 import {expandMaps} from '~/lib/expandMaps.js'
+import {findGraceful} from '~/lib/findGraceful.js'
 import * as mainCommand from '~/src/command/main.js'
 import {InvokeServer} from '~/src/InvokeServer.js'
+import {InvokeTask} from '~/src/InvokeTask.js'
 
 const seed = 0
 const cli = yargs().command(mainCommand)
@@ -39,4 +41,9 @@ test(`expandMaps`, async () => {
     'e.map': [[`_`], ``],
   }
   const mapped = expandMaps(config)
+})
+test(`findGraceful`, () => {
+  const needle = `abc`
+  const haystack = [`Abc`, `Def`, `Ghi`]
+  const result = findGraceful(needle, haystack)
 })

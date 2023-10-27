@@ -1,4 +1,5 @@
 import type {paths as ApiType} from '~/lib/openapi.js'
+import type {XOR} from 'ts-xor'
 import type {Merge} from 'type-fest'
 
 import * as lodash from 'lodash-es'
@@ -7,16 +8,19 @@ import {Simplify} from 'type-fest'
 export type Scheduler = "ddim" | "ddpm" | "deis" | "dpmpp_2m" | "dpmpp_2m_k" | "dpmpp_2m_sde" | "dpmpp_2m_sde_k" | "dpmpp_2s" | "dpmpp_2s_k" | "dpmpp_sde" | "dpmpp_sde_k" | "euler" | "euler_a" | "euler_k" | "heun" | "heun_k" | "kdpm_2" | "kdpm_2_a" | "lms" | "lms_k" | "pndm" | "unipc"
 export type Loras = Record<string, number>
 
-type UnsetOptions = {
-  boardId?: string
+type OptionsWithoutDefaults = {
   loras?: Loras
   prompt: string
   seed?: number
   width?: number
-}
-type MergedOptions = Merge<typeof defaultOptions, UnsetOptions>
+} & XOR<{
+  boardId?: string
+}, {
+  board?: string
+}>
+type MergedOptions = Merge<typeof defaultOptions, OptionsWithoutDefaults>
 
-export type Options = Merge<Partial<typeof defaultOptions>, UnsetOptions>
+export type Options = Merge<Partial<typeof defaultOptions>, OptionsWithoutDefaults>
 
 export const defaultOptions = {
   cfgScale: 5,
@@ -71,6 +75,7 @@ class InvokeNode {
   }
 }
 export class InvokeTask {
+  boardId?: string
   negativeStyle: string
   nodes: ApiGraph["nodes"]
   options: MergedOptions
@@ -161,12 +166,7 @@ export class InvokeTask {
         type: `save_image`,
       },
     }
-    if (this.options.boardId) {
-      // @ts-expect-error
-      this.nodes.saveImage.board = {
-        board_id: this.options.boardId,
-      }
-    }
+    this.setBoard(this.options.boardId)
     if (!lodash.isEmpty(this.options.loras)) {
       // @ts-expect-error
       this.nodes.metadata.loras = []
@@ -211,6 +211,19 @@ export class InvokeTask {
         runs: this.options.runs,
       },
       prepend: this.options.highPriority,
+    }
+  }
+  setBoard(boardId?: string) {
+    this.boardId = boardId
+    if (boardId) {
+    // @ts-expect-error
+      this.nodes.saveImage.board = {
+        board_id: boardId,
+      }
+      return
+    }
+    if (this.nodes.saveImage.board) {
+      delete this.nodes.saveImage.board
     }
   }
   toString() {

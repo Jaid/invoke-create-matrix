@@ -24,6 +24,11 @@ export class InvokeTaskBatch {
     const sortedTasks = lodash.sortBy(this.tasks, [`options.model`, task => JSON.stringify(task.options.loras)])
     return sortedTasks
   }
+  setBoard(boardId: string) {
+    for (const task of this.tasks) {
+      task.setBoard(boardId)
+    }
+  }
   [Symbol.iterator]() {
     return this.tasks[Symbol.iterator]()
   }

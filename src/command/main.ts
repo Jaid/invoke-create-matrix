@@ -1,4 +1,4 @@
-import type {Options as InvokeTaskOptions, Loras, Scheduler} from '../InvokeTask.js'
+import type {Loras, Scheduler} from '../InvokeTask.js'
 import type {ArgumentsCamelCase, Argv, CommandBuilder} from 'yargs'
 
 import * as lodash from 'lodash-es'
@@ -25,9 +25,6 @@ export const builder = (argv: Argv) => {
       fp32: {
         boolean: defaultOptions.fp32,
         default: true,
-      },
-      fromYaml: {
-        string: true,
       },
       height: {
         default: defaultOptions.height,
@@ -93,20 +90,8 @@ export const builder = (argv: Argv) => {
     })
 }
 
-const fromYaml = async (args: Args) => {
-  const data = <InvokeTaskOptions> await readFileYaml.default(args.fromYaml)
-  if (!data) {
-    throw new Error(`No data in ${args.fromYaml}`)
-  }
-  const dataMerged = {
-    ...args,
-    ...data,
-  }
-  return InvokeTaskBatch.fromData(dataMerged)
-}
-
 export const handler = async (args: Args) => {
   const api = new InvokeServer
-  const batch = args.fromYaml ? await fromYaml(args) : InvokeTaskBatch.fromOptions(args)
+  const batch = InvokeTaskBatch.fromOptions(args)
   await api.queueAllOptimized(batch)
 }

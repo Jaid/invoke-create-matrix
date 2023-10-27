@@ -34,12 +34,13 @@
     "eslint-config-jaid": "^8.17.0",
     "globby": "^13.2.2",
     "openapi-typescript": "^6.7.0",
+    "ts-xor": "^1.3.0",
     "tsconfig-jaid-node": "^6.1.1",
     "type-fest": "^4.5.0"
   },
   "scripts": {
     "start": "node --import tsx src/cli.ts",
-    "startFromYaml": "node --import tsx src/cli.ts --from-yaml private/input.yml",
+    "startFromYaml": "node --import tsx src/cli.ts fromYaml private/input.yml",
     "buildOpenapiTypes": "curl http://localhost:9090/openapi.json --output temp/openapi.json && openapi-typescript --export-type temp/openapi.json --output lib/openapi.ts",
     "test": "node --import tsx --test-only test/index.ts"
   },

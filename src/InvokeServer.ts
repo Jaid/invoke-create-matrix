@@ -1,9 +1,11 @@
-import type {InvokeTask} from './InvokeTask.js'
+import type {InvokeTask, InvokeTask} from './InvokeTask.js'
 import type {InvokeTaskBatch} from './InvokeTaskBatch.js'
 import type {paths as ApiType} from '~/lib/openapi.js'
 
 import got from 'got'
 import * as lodash from 'lodash-es'
+
+import {findGraceful} from '~/lib/findGraceful.js'
 
 type Options = {
   domain: string
@@ -29,6 +31,18 @@ export class InvokeServer {
       prefixUrl: `${this.options.protocol}://${this.options.domain}:${this.options.port}/api/v1`,
     })
   }
+  async findBoard(nameOrId: string) {
+    const boards = <Record<string, unknown>[]> await this.getBoards()
+    const boardById = boards.find(board => board.board_id === nameOrId)
+    if (boardById) {
+      return boardById
+    }
+    const boardByName = findGraceful(nameOrId, boards, `board_name`)
+    if (boardByName) {
+      return boardByName
+    }
+    throw new Error(`Board not found by input “${nameOrId}”`)
+  }
   async getBoards() {
     const query: ApiType["/api/v1/boards/"]["get"]["parameters"]["query"] = {
       all: true,
@@ -47,6 +61,7 @@ export class InvokeServer {
     }
     return board.board_id
   }
+  // http://127.0.0.1:9090/api/v1/models/?base_models=sdxl&model_type=main
   async getModels() {
     const query: ApiType["/api/v1/models/"]["get"]["parameters"]["query"] = {
       base_models: [`sdxl`],
@@ -56,12 +71,22 @@ export class InvokeServer {
       responseType: `json`,
       searchParams: new URLSearchParams(query),
     })
-    return response.body
+    return response.body.models
   }
-  async queue(graph: ApiType["/api/v1/queue/{queue_id}/enqueue_batch"]["post"]["requestBody"]["content"]["application/json"]) {
+  async normalizeTask(task: InvokeTask) {
+    if (task.options.board) {
+      const board = await this.findBoard(task.options.board)
+      if (!board) {
+        throw new Error(`Board not found by input “${task.options.board}”`)
+      }
+      task.setBoard(board.board_id)
+    }
+  }
+  async queue(task: InvokeTask) {
+    await this.normalizeTask(task)
     try {
       const response = await this.got.post(`queue/default/enqueue_batch`, {
-        json: graph,
+        json: task.build(),
         responseType: `json`,
       })
       const body = <ApiType["/api/v1/queue/{queue_id}/enqueue_batch"]["post"]["responses"]["201"]["content"]["application/json"]> response.body
@@ -73,8 +98,7 @@ export class InvokeServer {
   async queueAll(batch: InvokeTask[] | Iterable<InvokeTask>) {
     const results: Parameters<InvokeServer["queue"]>[0][] = []
     for (const task of batch) {
-      const graph = task.build()
-      const result = await this.queue(graph)
+      const result = await this.queue(task)
       results.push(result)
     }
     return results
