@@ -1,6 +1,7 @@
-import * as mainCommand from './command/main.js'
 import yargs from 'yargs'
 import {hideBin} from 'yargs/helpers'
+
+import * as mainCommand from './command/main.js'
 
 await yargs(hideBin(process.argv))
   .detectLocale(false)

@@ -1,9 +1,10 @@
 import type {Options as InvokeTaskOptions} from './InvokeTask.js'
 
-import {InvokeTask} from './InvokeTask.js'
 import * as lodash from 'lodash-es'
 
 import {expandMaps} from '~/lib/expandMaps.js'
+
+import {InvokeTask} from './InvokeTask.js'
 
 export class InvokeTaskBatch {
   static fromData = (batchData: InvokeTaskOptions) => {
